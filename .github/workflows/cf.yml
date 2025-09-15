@@ -2,10 +2,8 @@ name: cf workers
 
 on:
   workflow_dispatch:
-
   push:
-    branches:
-      - master
+    branches: [ master ]
     paths-ignore:
       - 'README.md'
       - 'LICENSE.md'
@@ -14,19 +12,22 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     environment: cf
+    timeout-minutes: 60
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Rust and worker-build
-        run: |
-          rustup update
-          rustup target add wasm32-unknown-unknown
-          cargo install -q worker-build
-
-      - name: Build with worker-build (no wasm-opt)
-        run: WASMOPT=0 worker-build --release
-
-      - name: Deploy to Cloudflare Workers
+      # Wrangler akan menjalankan [build] dari wrangler.toml,
+      # jadi kita cukup siapkan Rust toolchain sebelum deploy.
+      - name: Build & Deploy with Wrangler
         uses: cloudflare/wrangler-action@v3
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          apiToken:  ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          # Boleh dihapus jika account_id sudah ada di wrangler.toml (punyamu sudah ada).
+          # accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          environment: production
+          command: deploy --env production --verbose
+          preCommands: |
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+            . "$HOME/.cargo/env"
+            rustup target add wasm32-unknown-unknown
