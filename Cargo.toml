@@ -1,3 +1,4 @@
+
 [package]
 name = "siren"
 version = "0.1.0"
@@ -31,7 +32,6 @@ opt-level = "s"
 lto = true
 strip = true
 codegen-units = 1
-
 
 [package.metadata.wasm-pack.profile.release]
 wasm-opt = false
