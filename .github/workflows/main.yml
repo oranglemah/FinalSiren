@@ -1,3 +1,4 @@
+
 name: Upload Files to KV Storage via API
 
 on:
@@ -7,110 +8,137 @@ jobs:
   upload-to-kv:
     runs-on: ubuntu-latest
     environment: cf
-
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Install jq (for JSON checks)
-        run: sudo apt-get update && sudo apt-get install -y jq
-
-      - name: Read KV Namespace IDs from wrangler.toml
+      
+      - name: Get KV Namespace IDs
+        id: get-namespaces
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          # Ganti binding di sini agar sesuai wrangler.toml-mu.
-          # Kalau kamu belum punya binding2 ini, tambahkan ke wrangler.toml dulu.
-          HTML_NAMESPACE_ID=$(awk '/\[\[kv_namespaces\]\]/ {inblk=1} inblk && /binding *= *"HTML_FILES"/ {getid=1} getid && /id *= *"/ {gsub(/.*id *= *"|"$/, "", $0); print $0; exit}' wrangler.toml)
-          CSS_NAMESPACE_ID=$(awk  '/\[\[kv_namespaces\]\]/ {inblk=1} inblk && /binding *= *"CSS_FILES"/  {getid=1} getid && /id *= *"/ {gsub(/.*id *= *"|"$/, "", $0); print $0; exit}' wrangler.toml)
-          JS_NAMESPACE_ID=$(awk   '/\[\[kv_namespaces\]\]/ {inblk=1} inblk && /binding *= *"JS_FILES"/   {getid=1} getid && /id *= *"/ {gsub(/.*id *= *"|"$/, "", $0); print $0; exit}' wrangler.toml)
-          IMAGE_NAMESPACE_ID=$(awk '/\[\[kv_namespaces\]\]/ {inblk=1} inblk && /binding *= *"IMAGE_FILES"/{getid=1} getid && /id *= *"/ {gsub(/.*id *= *"|"$/, "", $0); print $0; exit}' wrangler.toml)
-
-          echo "HTML_NAMESPACE_ID=$HTML_NAMESPACE_ID"   >> $GITHUB_ENV
-          echo "CSS_NAMESPACE_ID=$CSS_NAMESPACE_ID"     >> $GITHUB_ENV
-          echo "JS_NAMESPACE_ID=$JS_NAMESPACE_ID"       >> $GITHUB_ENV
+          # Simpan ID namespace dari wrangler.toml
+          HTML_NAMESPACE_ID=$(grep -A 1 'HTML_FILES' wrangler.toml | grep 'id' | cut -d '"' -f 2)
+          CSS_NAMESPACE_ID=$(grep -A 1 'CSS_FILES' wrangler.toml | grep 'id' | cut -d '"' -f 2)
+          JS_NAMESPACE_ID=$(grep -A 1 'JS_FILES' wrangler.toml | grep 'id' | cut -d '"' -f 2)
+          IMAGE_NAMESPACE_ID=$(grep -A 1 'IMAGE_FILES' wrangler.toml | grep 'id' | cut -d '"' -f 2)
+          
+          echo "HTML_NAMESPACE_ID=$HTML_NAMESPACE_ID" >> $GITHUB_ENV
+          echo "CSS_NAMESPACE_ID=$CSS_NAMESPACE_ID" >> $GITHUB_ENV
+          echo "JS_NAMESPACE_ID=$JS_NAMESPACE_ID" >> $GITHUB_ENV
           echo "IMAGE_NAMESPACE_ID=$IMAGE_NAMESPACE_ID" >> $GITHUB_ENV
-
-          # Fail cepat jika ada yang kosong (supaya jelas penyebabnya)
-          for v in HTML_NAMESPACE_ID CSS_NAMESPACE_ID JS_NAMESPACE_ID; do
-            if [ -z "${!v}" ]; then
-              echo "❌ $v kosong. Pastikan binding ada di wrangler.toml (atau ubah workflow agar pakai binding yang benar)."
-              exit 1
-            fi
-          done
-
-      - name: Upload HTML files (raw)
+      
+      - name: Upload HTML files
         env:
-          CF_API_TOKEN:   ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CF_ACCOUNT_ID:  ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          NAMESPACE_ID:   ${{ env.HTML_NAMESPACE_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          set -euo pipefail
-          encode() { python3 - <<'PY' "$1"; import sys, urllib.parse as u; print(u.quote(sys.argv[1], safe='')); PY; }
-          put() {
-            local KEY="$1"; local FILE="$2"
-            curl -fsS -X PUT \
-              "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/storage/kv/namespaces/$NAMESPACE_ID/values/$(encode "$KEY")" \
-              -H "Authorization: Bearer $CF_API_TOKEN" \
-              --data-binary @"$FILE" \
-              | tee /tmp/resp.json | jq -e '.success==true' >/dev/null
-            echo "✅ $KEY"
-          }
-          put "index.html"     "index.html"
-          put "sub.html"       "sub.html"
-          put "converter.html" "converter.html"
-          put "link.html"      "link.html"
-
-      - name: Upload CSS files (raw)
+          # Upload index.html
+          INDEX_HTML=$(cat index.html | base64 -w 0)
+          curl -X PUT "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/storage/kv/namespaces/$HTML_NAMESPACE_ID/values/index.html" \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            -H "Content-Type: text/plain" \
+            --data "$INDEX_HTML"
+          
+          # Upload sub.html
+          SUB_HTML=$(cat sub.html | base64 -w 0)
+          curl -X PUT "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/storage/kv/namespaces/$HTML_NAMESPACE_ID/values/sub.html" \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            -H "Content-Type: text/plain" \
+            --data "$SUB_HTML"
+          
+          # Upload converter.html
+          CONVERTER_HTML=$(cat converter.html | base64 -w 0)
+          curl -X PUT "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/storage/kv/namespaces/$HTML_NAMESPACE_ID/values/converter.html" \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            -H "Content-Type: text/plain" \
+            --data "$CONVERTER_HTML"
+          
+          # Upload link.html
+          LINK_HTML=$(cat link.html | base64 -w 0)
+          curl -X PUT "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/storage/kv/namespaces/$HTML_NAMESPACE_ID/values/link.html" \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            -H "Content-Type: text/plain" \
+            --data "$LINK_HTML"
+      
+      - name: Upload CSS files
         env:
-          CF_API_TOKEN:   ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CF_ACCOUNT_ID:  ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          NAMESPACE_ID:   ${{ env.CSS_NAMESPACE_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          set -euo pipefail
-          encode() { python3 - <<'PY' "$1"; import sys, urllib.parse as u; print(u.quote(sys.argv[1], safe='')); PY; }
-          for f in css/common.css css/index.css css/link.css css/sub.css css/converter.css; do
-            key=$(basename "$f")
-            curl -fsS -X PUT \
-              "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/storage/kv/namespaces/$NAMESPACE_ID/values/$(encode "$key")" \
-              -H "Authorization: Bearer $CF_API_TOKEN" \
-              --data-binary @"$f" \
-              | tee /tmp/resp.json | jq -e '.success==true' >/dev/null
-            echo "✅ $key"
-          done
-
-      - name: Upload JS files (raw)
+          # Upload common.css
+          COMMON_CSS=$(cat css/common.css | base64 -w 0)
+          curl -X PUT "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/storage/kv/namespaces/$CSS_NAMESPACE_ID/values/common.css" \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            -H "Content-Type: text/plain" \
+            --data "$COMMON_CSS"
+          
+          # Upload index.css
+          INDEX_CSS=$(cat css/index.css | base64 -w 0)
+          curl -X PUT "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/storage/kv/namespaces/$CSS_NAMESPACE_ID/values/index.css" \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            -H "Content-Type: text/plain" \
+            --data "$INDEX_CSS"
+          
+          # Upload link.css
+          LINK_CSS=$(cat css/link.css | base64 -w 0)
+          curl -X PUT "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/storage/kv/namespaces/$CSS_NAMESPACE_ID/values/link.css" \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            -H "Content-Type: text/plain" \
+            --data "$LINK_CSS"
+          
+          # Upload sub.css
+          SUB_CSS=$(cat css/sub.css | base64 -w 0)
+          curl -X PUT "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/storage/kv/namespaces/$CSS_NAMESPACE_ID/values/sub.css" \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            -H "Content-Type: text/plain" \
+            --data "$SUB_CSS"
+          
+          # Upload converter.css
+          CONVERTER_CSS=$(cat css/converter.css | base64 -w 0)
+          curl -X PUT "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/storage/kv/namespaces/$CSS_NAMESPACE_ID/values/converter.css" \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            -H "Content-Type: text/plain" \
+            --data "$CONVERTER_CSS"
+      
+      - name: Upload JS files
         env:
-          CF_API_TOKEN:   ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CF_ACCOUNT_ID:  ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          NAMESPACE_ID:   ${{ env.JS_NAMESPACE_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          set -euo pipefail
-          encode() { python3 - <<'PY' "$1"; import sys, urllib.parse as u; print(u.quote(sys.argv[1], safe='')); PY; }
-          for f in js/common.js js/index.js js/link.js js/sub.js js/converter.js; do
-            key=$(basename "$f")
-            curl -fsS -X PUT \
-              "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/storage/kv/namespaces/$NAMESPACE_ID/values/$(encode "$key")" \
-              -H "Authorization: Bearer $CF_API_TOKEN" \
-              --data-binary @"$f" \
-              | tee /tmp/resp.json | jq -e '.success==true' >/dev/null
-            echo "✅ $key"
-          done
-
-      - name: Upload images (optional)
-        if: env.IMAGE_NAMESPACE_ID != ''
-        env:
-          CF_API_TOKEN:   ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CF_ACCOUNT_ID:  ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          NAMESPACE_ID:   ${{ env.IMAGE_NAMESPACE_ID }}
-        run: |
-          set -euo pipefail
-          shopt -s nullglob
-          encode() { python3 - <<'PY' "$1"; import sys, urllib.parse as u; print(u.quote(sys.argv[1], safe='')); PY; }
-          for f in images/*; do
-            key=$(basename "$f")
-            curl -fsS -X PUT \
-              "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/storage/kv/namespaces/$NAMESPACE_ID/values/$(encode "$key")" \
-              -H "Authorization: Bearer $CF_API_TOKEN" \
-              --data-binary @"$f" \
-              | tee /tmp/resp.json | jq -e '.success==true' >/dev/null
-            echo "✅ $key"
-          done
+          # Upload common.js
+          COMMON_JS=$(cat js/common.js | base64 -w 0)
+          curl -X PUT "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/storage/kv/namespaces/$JS_NAMESPACE_ID/values/common.js" \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            -H "Content-Type: text/plain" \
+            --data "$COMMON_JS"
+          
+          # Upload index.js
+          INDEX_JS=$(cat js/index.js | base64 -w 0)
+          curl -X PUT "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/storage/kv/namespaces/$JS_NAMESPACE_ID/values/index.js" \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            -H "Content-Type: text/plain" \
+            --data "$INDEX_JS"
+          
+          # Upload link.js
+          LINK_JS=$(cat js/link.js | base64 -w 0)
+          curl -X PUT "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/storage/kv/namespaces/$JS_NAMESPACE_ID/values/link.js" \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            -H "Content-Type: text/plain" \
+            --data "$LINK_JS"
+          
+          # Upload sub.js
+          SUB_JS=$(cat js/sub.js | base64 -w 0)
+          curl -X PUT "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/storage/kv/namespaces/$JS_NAMESPACE_ID/values/sub.js" \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            -H "Content-Type: text/plain" \
+            --data "$SUB_JS"
+          
+          # Upload converter.js
+          CONVERTER_JS=$(cat js/converter.js | base64 -w 0)
+          curl -X PUT "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/storage/kv/namespaces/$JS_NAMESPACE_ID/values/converter.js" \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            -H "Content-Type: text/plain" \
+            --data "$CONVERTER_JS"
