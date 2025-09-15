@@ -17,18 +17,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Biarkan Wrangler yang menjalankan [build] -> worker-build.
-      # TUGAS kita: pastikan Rust + target WASM tersedia sebelum deploy.
       - name: Build & Deploy with Wrangler
+        id: deploy
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken:  ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          # optional kalau account_id sudah di wrangler.toml; kalau mau di sini:
+          # accountId opsional jika sudah ada `account_id` di wrangler.toml; kalau ingin pastikan:
           # accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           environment: production
-          command: deploy --env production --verbose
+          wranglerVersion: "4.37.0"          # konsisten dgn log kamu
+          command: |
+            # Debug auth & versi terlebih dulu
+            wrangler --version
+            wrangler whoami
+            # Deploy ke env production (pakai routes di [env.production])
+            wrangler deploy --env production --verbose
           preCommands: |
             # Install Rust toolchain
             curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
             . "$HOME/.cargo/env"
             rustup target add wasm32-unknown-unknown
+            # Pastikan cargo bin di PATH untuk proses berikutnya
+            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+            # Preinstall worker-build supaya wrangler [build] lebih cepat
+            cargo install -q worker-build
