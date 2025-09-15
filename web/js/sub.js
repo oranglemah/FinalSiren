@@ -63,13 +63,20 @@ document.addEventListener("DOMContentLoaded", () => {
   loadProxyList();
 });
 function populateMainDomains() {
-  CONFIG.mainDomains.forEach(_0x40b88c => {
-    const _0x111831 = document.createElement("option");
-    _0x111831.value = _0x40b88c;
-    _0x111831.textContent = _0x40b88c;
-    mainDomainSelect.appendChild(_0x111831);
+  // kosongkan opsi lama dulu
+  mainDomainSelect.innerHTML = '';
+
+  // isi ulang dari CONFIG
+  CONFIG.mainDomains.forEach((d) => {
+    const opt = document.createElement('option');
+    opt.value = d;
+    opt.textContent = d;
+    mainDomainSelect.appendChild(opt);
   });
-}
+
+  // set default terpilih
+  if (CONFIG.mainDomains.length) {
+    mainDomainSelect.value = CONFIG.mainDomains[0];
 function setupEventListeners() {
   generateUuidBtn.addEventListener("click", () => {
     uuidInput.value = crypto.randomUUID();
