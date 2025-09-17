@@ -1,4 +1,3 @@
-
 [package]
 name = "siren"
 version = "0.1.0"
@@ -8,24 +7,36 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
+# Hapus tokio jika tidak dipakai; kalau dipakai, tetap minimal:
 tokio = { version = "1.28", features = ["io-util", "rt"] }
+
 serde_json = "1.0"
 base64 = "0.22"
+
+# RNG untuk WASM (pakai Web Crypto di lingkungan JS/Workers)
 getrandom = { version = "0.2", features = ["js"] }
-worker = "0.5.0"
+
+# SDK Cloudflare Workers
+worker = "0.5.0"  # tambahkan feature "http" bila perlu tipe-tipe http standar
+
 futures-util = "0.3.28"
 pin-project-lite = "0.2"
-uuid = "1.8.0"
+
+# UUID v4 di WASM
+uuid = { version = "1.8", features = ["v4", "rng-getrandom"] }
+
 bytes = "1.4.0"
 aes-gcm = "0.10"
 aes = "0.8"
 sha2 = "0.10"
 md-5 = "0.10"
 anyhow = "1.0.86"
-reqwest = "0.12.5"
+
+# HTTP client (WASM-aware)
+reqwest = { version = "0.12.5", features = ["json"] }
+
 regex = "1.11.1"
 once_cell = "1.21.3"
-
 
 [profile.release]
 opt-level = "s"
@@ -34,4 +45,5 @@ strip = true
 codegen-units = 1
 
 [package.metadata.wasm-pack.profile.release]
+# biar tidak perlu binaryen/wasm-opt di CI
 wasm-opt = false
