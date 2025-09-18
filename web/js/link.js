@@ -23,6 +23,8 @@ const pathTemplate = "/Free/{ip}-{port}"
 const bugOptions = [
   { value: "", label: "Default" },
   { value: "support.zoom.us", label: "ZOOM" }
+  { value: "ava.game.naver.com", label: "AVA" }
+  { value: "api.midtrans.com", label: "MIDTRANS" }
 ];
 
 
