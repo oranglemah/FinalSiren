@@ -32,9 +32,6 @@ routes = [
   { pattern = "zoomgov.com.dia.oranglemah.web.id", custom_domain = true }
 ]
 
-[[kv_namespaces]]
-binding = "SIREN"
-id = "9d05b7b01b374d619d5f8ff372889c3b"
 
 [vars]
 UUID = "fccdaaae-af39-41a7-9fde-fd32a48278cf"
