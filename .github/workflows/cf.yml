@@ -1,9 +1,7 @@
-
 name: cf workers
 
 on:
   workflow_dispatch:
-
   push:
     branches:
       - master
@@ -18,11 +16,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Rust and worker-build
+      - name: Install Rust toolchain
         run: |
           rustup update
           rustup target add wasm32-unknown-unknown
-          cargo install -q worker-build
+
+      - uses: Swatinem/rust-cache@v2        # ← cache ~/.cargo & target
+
+      - name: Install worker-build (pinned)
+        run: cargo install worker-build --version 0.0.11 --quiet
 
       - name: Build with worker-build (no wasm-opt)
         run: WASMOPT=0 worker-build --release
@@ -31,3 +33,4 @@ jobs:
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          packageManager: npm                # ← hindari pnpm/yarn otomatis
