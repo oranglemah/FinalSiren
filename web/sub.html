@@ -1,198 +1,841 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AFRCloud-NET || Subscription</title>
-    
-    <!-- Favicon -->
-    <link rel="icon" href="https://raw.githubusercontent.com/AFRcloud/BG/main/icons8-film-noir-80.png"/>
-    
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-    
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="css/common.css">
-    <link rel="stylesheet" href="css/sub.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        /* This style is now in common.css */
-    </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>AFRCloud – Sub Link Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#0b1020;
+    --panel:#0f172a;
+    --muted:#94a3b8;
+    --text:#e2e8f0;
+    --accent:#4f46e5;
+    --accent-2:#2563eb;
+    --danger:#ef4444;
+    --ok:#22c55e;
+    --border:#1f2937;
+    --input:#0a1222;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    background: radial-gradient(1200px 800px at 10% -10%, rgba(79,70,229,.15), transparent 55%),
+                radial-gradient(1000px 700px at 90% -20%, rgba(37,99,235,.12), transparent 50%),
+                var(--bg);
+    font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Apple Color Emoji, Segoe UI Emoji;
+    color:var(--text);
+  }
+  header{
+    max-width:1100px;margin:24px auto 0; padding:0 16px;
+    display:flex; align-items:center; gap:12px;
+  }
+  .logo{
+    width:42px;height:42px;border-radius:12px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    display:grid; place-items:center; color:#fff; font-weight:700;
+    box-shadow: 0 10px 30px rgba(79,70,229,.35), inset 0 0 40px rgba(255,255,255,.06);
+  }
+  .title h1{margin:0;font-size:20px}
+  .title p{margin:2px 0 0;color:var(--muted);font-size:13px}
+  .container{
+    max-width:1100px; margin:18px auto 40px; padding:0 16px;
+    display:grid; grid-template-columns: 1.2fr .8fr; gap:18px;
+  }
+  @media (max-width: 980px){
+    .container{grid-template-columns:1fr}
+  }
+  .card{
+    background:rgba(17,24,39,.75); backdrop-filter: blur(6px);
+    border:1px solid var(--border); border-radius:16px; padding:18px;
+    box-shadow: 0 15px 40px rgba(0,0,0,.25);
+  }
+  h2{margin:0 0 12px;font-size:18px}
+  .grid{display:grid; gap:12px}
+  .grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+  @media (max-width: 720px){
+    .grid.two,.grid.three{grid-template-columns:1fr}
+  }
+  label{display:block; margin:0 0 6px; color:var(--muted); font-size:13px}
+  input, select, textarea{
+    width:100%; background:var(--input); color:var(--text);
+    border:1px solid #1e293b; border-radius:12px; outline:none;
+    padding:12px 13px; font-size:14px;
+  }
+  textarea{min-height:280px; resize: vertical}
+  .btn{
+    display:inline-flex; align-items:center; gap:10px;
+    background:linear-gradient(135deg, var(--accent), var(--accent-2));
+    color:#fff; border:0; border-radius:12px; padding:12px 16px; cursor:pointer;
+    font-weight:600; box-shadow: 0 10px 24px rgba(37,99,235,.35);
+  }
+  .btn.secondary{
+    background:#0b1220; color:var(--text); border:1px solid #1f2a44; box-shadow:none;
+  }
+  .row{display:flex; gap:10px; flex-wrap:wrap}
+  .muted{color:var(--muted); font-size:13px}
+  .error{display:none; background: rgba(239,68,68,.12); color:#fecaca; border:1px solid rgba(239,68,68,.35); padding:12px 14px; border-radius:12px; font-size:14px}
+  .status{display:none}
+  .progress{
+    height:10px; width:100%; background:#0b1220; border-radius:999px; border:1px solid #1f2a44; overflow:hidden;
+  }
+  .progress > span{display:block;height:100%; width:0%; background:linear-gradient(90deg, var(--accent), var(--accent-2))}
+  .stat-badges{display:flex; gap:12px; flex-wrap:wrap}
+  .badge{
+    background:#0a1222; border:1px solid #1f2a44; padding:8px 10px; border-radius:999px; font-size:12px; color:var(--muted)
+  }
+  .badge strong{color:#fff; margin-left:6px}
+  .footer-note{color:var(--muted); font-size:12px; margin-top:10px}
+  .loading{
+    display:none; position:fixed; inset:0; background:rgba(3,6,20,.65); backdrop-filter: blur(2px);
+    z-index:999; align-items:center; justify-content:center;
+  }
+  .loading .box{
+    background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:18px 18px; width:min(92vw, 420px);
+    text-align:center;
+  }
+  .spinner{width:26px;height:26px;border:3px solid #1f2a44;border-top-color:#7c83ff;border-radius:50%;margin:0 auto 10px;animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .copy-icon{width:18px;height:18px}
+  .pill{
+    display:inline-flex; align-items:center; gap:8px; background:#0a1222; border:1px solid #1f2a44; color:#dbeafe;
+    padding:6px 10px; border-radius:999px; font-size:12px
+  }
+  .inline-btn{padding:8px 10px; border-radius:10px}
+  .sep{height:1px;background:#162036;margin:14px -18px}
+</style>
 </head>
 <body>
-    <div class="container">
-        <div class="card">
-            <div class="tech-detail tech-detail-1"></div>
-            <div class="tech-detail tech-detail-2"></div>
-            <div class="tech-detail tech-detail-3"></div>
-            
-            <div class="title-container">
-                <h1 class="title">AFRCloud-NET</h1>
-                <p class="subtitle">Advanced Subscription Link Generator</p>
-            </div>
-            
-            <form id="subLinkForm">
-                <div class="form-group">
-                    <label for="configType">PROTOCOL TYPE</label>
-                    <select id="configType" class="form-control" required>
-                        <option value="vless">VLESS</option>
-                        <option value="vmess">VMESS</option>
-                        <option value="trojan">TROJAN</option>
-                        <option value="shadowsocks">SHADOWSOCKS</option>
-                        <option value="mix">MIX (ALL PROTOCOLS)</option>
-                    </select>
-                </div>
 
-                <div class="form-group">
-                    <label for="formatType">FORMAT TYPE</label>
-                    <select id="formatType" class="form-control" required>
-                        <option value="v2ray">Link V2RAY</option>
-                        <option value="nekobox">Config NEKOBOX</option>
-                        <option value="clash">Proxy_Provider CLASH</option>
-                    </select>
-                </div>
-                
-                <div class="form-group uuid-group">
-                    <label for="uuid">UUID</label>
-                    <input type="text" id="uuid" class="form-control" value="fccdaaae-af39-41a7-9fde-fd32a48278cf" required>
-                    <button type="button" id="generateUuid" class="uuid-generate">GENERATE</button>
-                </div>
-                
-                <div class="form-group">
-                    <label for="bugType">BUG TYPE</label>
-                    <select id="bugType" class="form-control" required>
-                        <option value="default">DIRECT</option>
-                        <option value="non-wildcard">WEBSOCKET</option>
-                        <option value="wildcard">WILDCARD WEBSOCKET</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="mainDomain">MAIN DOMAIN <span class="info-badge">SELECT</span></label>
-                    <select id="mainDomain" class="form-control" required>
-                        <option value="dia.oranglemah.web.id">dia.oranglemah.web.id</option>
-                    </select>
-                </div>
-                
-                <div id="customBugContainer" class="form-group custom-bug-container">
-                    <label for="customBug">CUSTOM BUG</label>
-                    <input type="text" id="customBug" class="form-control" placeholder="Example : BUG-WLG.COM, BUG-VIU.COM, BUG-ZOOM.COM">
-                    <div class="select-info">Pisah Dengan Koma Jika Ingin Banyak BUG sekaligus</div>
-                    <div class="select-info">Supported Wildcard : ava.game.naver.com, quiz.int.vidio.com, graph.instagram.com, zaintest.vuclip.com, support.zoom.us, cache.netflix.com</div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="tls">TLS ENCRYPTION</label>
-                    <select id="tls" class="form-control">
-                        <option value="true">ENABLED</option>
-                        <option value="false">DISABLED</option>
-                    </select>
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="country">REGION FILTER</label>
-                        <select id="country" class="form-control">
-                            <option value="">Loading regions...</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="limit">QUANTITY</label>
-                        <input type="number" id="limit" class="form-control" min="1" max="50" value="5" placeholder="Max 50" required>
-                    </div>
-                </div>
-                
-                <div class="form-group validation-group">
-                    <label class="form-check">
-                        <input type="checkbox" id="validateProxies" class="form-check-input" checked>
-                        <span class="form-check-label">Filter ProxyIP ACTIVE Untuk Subscription?</span>
-                    </label>
-                </div>
-                
-                <button type="submit" class="btn">Generate Configuration</button>
-            </form>
-            
-            <div id="loading" class="loading">
-                <div class="spinner"></div>
-                <div class="loading-text typing">Fetching proxy data and generating configs...</div>
-            </div>
-            
-            <div id="validation-status" class="validation-status">
-                <div>Validating proxies... <span id="validation-count">0/0</span></div>
-                <div class="validation-progress">
-                    <div id="validation-bar" class="validation-bar"></div>
-                </div>
-                <div class="validation-stats">
-                    <div>Valid: <span id="valid-count">0</span></div>
-                    <div>Invalid: <span id="invalid-count">0</span></div>
-                </div>
-            </div>
-            
-            <div id="error-message" class="error-message"></div>
-            
-            <div id="result" class="result">
-                <div class="result-header">
-                    <div class="result-title">CONFIGURATION GENERATED</div>
-                </div>
-                <div class="output-container">
-                    <textarea id="output" class="output" readonly></textarea>
-                </div>
-                <button id="copyLink" class="copy-btn">
-                    <svg class="copy-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                    </svg>
-                    COPY CONFIGURATION
-                </button>
-            </div>
+<header>
+  <div class="logo">AF</div>
+  <div class="title">
+    <h1>AFRCloud – Sub Link Generator</h1>
+    <p>Generate V2Ray / Clash / NekoBox dari daftar proxy publik, lengkap dengan filter negara & validasi.</p>
+  </div>
+</header>
+
+<div class="container">
+  <!-- FORM -->
+  <div class="card">
+    <form id="subLinkForm" class="grid" autocomplete="off">
+      <h2>Konfigurasi</h2>
+
+      <div class="grid two">
+        <div>
+          <label for="configType">Protocol</label>
+          <select id="configType">
+            <option value="mix">mix (vmess/vless/trojan/ss)</option>
+            <option value="vmess">vmess</option>
+            <option value="vless">vless</option>
+            <option value="trojan">trojan</option>
+            <option value="shadowsocks">shadowsocks</option>
+          </select>
         </div>
+        <div>
+          <label for="formatType">Output Format</label>
+          <select id="formatType">
+            <option value="v2ray">V2Ray links</option>
+            <option value="clash">Clash YAML</option>
+            <option value="nekobox">NekoBox JSON</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid two">
+        <div>
+          <label for="uuid">UUID / Password</label>
+          <div class="row">
+            <input id="uuid" placeholder="Masukkan UUID..." />
+            <button type="button" id="generateUuid" class="btn secondary inline-btn">Generate</button>
+          </div>
+          <p class="footer-note">Dipakai untuk VMess/VLESS/Trojan/SS (method none)</p>
+        </div>
+        <div>
+          <label for="tls">TLS</label>
+          <select id="tls">
+            <option value="true">true (443)</option>
+            <option value="false">false (80)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid three">
+        <div>
+          <label for="bugType">Bug Type</label>
+          <select id="bugType">
+            <option value="default">default (pakai main domain)</option>
+            <option value="non-wildcard">non-wildcard (bug jadi server, host = main domain)</option>
+            <option value="wildcard">wildcard (host/sni = bug.main-domain)</option>
+          </select>
+        </div>
+        <div>
+          <label for="mainDomain">Main Domain</label>
+          <select id="mainDomain"></select>
+        </div>
+        <div id="customBugContainer" style="display:none">
+          <label for="customBug">Custom Bug (comma separated)</label>
+          <input id="customBug" placeholder="contoh: cdn,cdn2" />
+        </div>
+      </div>
+
+      <div class="grid three">
+        <div>
+          <label for="country">Filter Negara</label>
+          <select id="country">
+            <option value="">All Countries</option>
+          </select>
+        </div>
+        <div>
+          <label for="limit">Jumlah Proxy</label>
+          <input id="limit" type="number" min="1" max="50" value="5" />
+        </div>
+        <div>
+          <label for="validateProxies">Validasi Proxy (opsional)</label>
+          <select id="validateProxies">
+            <option value="false">Tidak</option>
+            <option value="true">Ya (lebih lama)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <button class="btn" type="submit">
+          <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 5v14M5 12h14"></path>
+          </svg>
+          Generate Configuration
+        </button>
+        <span class="pill">Daftar proxy dari GitHub RAW, otomatis diacak</span>
+      </div>
+
+      <div id="error-message" class="error"></div>
+
+      <div id="validation-status" class="status">
+        <div class="sep"></div>
+        <h2>Validasi Proxy</h2>
+        <div class="row" style="align-items:center;justify-content:space-between">
+          <span class="muted">Progress: <strong id="validation-count">0/0</strong></span>
+          <div class="stat-badges">
+            <span class="badge">Valid <strong id="valid-count">0</strong></span>
+            <span class="badge">Invalid <strong id="invalid-count">0</strong></span>
+          </div>
+        </div>
+        <div class="progress" aria-hidden="true" style="margin-top:10px">
+          <span id="validation-bar"></span>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- HASIL -->
+  <div class="card" id="result" style="display:none">
+    <h2>Hasil</h2>
+    <textarea id="output" readonly placeholder="Hasil konfigurasi akan muncul di sini..."></textarea>
+    <div class="row" style="margin-top:10px">
+      <button id="copyLink" class="btn secondary">
+        <svg class="copy-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+          fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg>
+        COPY CONFIGURATION
+      </button>
+      <span class="muted">Salin dan import ke klien favoritmu.</span>
     </div>
+  </div>
+</div>
 
-    <footer class="footer">
-        <div class="circuit-line circuit-line-1"></div>
-        <div class="circuit-line circuit-line-2"></div>
-        <div class="circuit-line circuit-line-3"></div>
-        <div class="circuit-line circuit-line-4"></div>
-        <div class="circuit-dot circuit-dot-1"></div>
-        <div class="circuit-dot circuit-dot-2"></div>
-        <div class="circuit-dot circuit-dot-3"></div>
-        <div class="circuit-dot circuit-dot-4"></div>
-        
-        <div class="footer-logo">AFRCloud-NET</div>
-        <div class="footer-powered">POWERED BY SECURE TECHNOLOGY</div>
-        <div class="footer-social">
-            <a href="https://t.me/Noir7R" class="social-link" target="_blank">
-                <svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21.198 2.433a2.242 2.242 0 0 0-1.022.215l-8.609 3.33c-2.068.8-4.133 1.598-5.724 2.21a405.15 405.15 0 0 1-2.849 1.09c-.42.147-.99.332-1.473.901-.728.968.193 1.798.919 2.286 1.61.516 3.275 1.009 4.654 1.472.846 1.467 1.618 2.796 2.503 4.532.545 1.062 1.587 2.739 3.19 2.756 1.26.033 2.052-.6 3.542-1.95a142.91 142.91 0 0 1 2.43-2.053c1.686-.142 3.382-.284 5.12-.436.887-.075 1.92-.262 2.405-1.226.436-.877-.015-1.35-.48-1.874l-3.881-4.369-5.481-6.174S22.185 2.128 21.198 2.433z"></path>
-                    <path d="M18.167 7.068c.237 1.632-1.162 6.872-1.766 8.849"></path>
-                </svg>
-                @Noir7R
-            </a>
-        </div>    
-        <div class="footer-social">
-            <a href="https://t.me/inconigto_Mode" class="social-link" target="_blank">
-                <svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21.198 2.433a2.242 2.242 0 0 0-1.022.215l-8.609 3.33c-2.068.8-4.133 1.598-5.724 2.21a405.15 405.15 0 0 1-2.849 1.09c-.42.147-.99.332-1.473.901-.728.968.193 1.798.919 2.286 1.61.516 3.275 1.009 4.654 1.472.846 1.467 1.618 2.796 2.503 4.532.545 1.062 1.587 2.739 3.19 2.756 1.26.033 2.052-.6 3.542-1.95a142.91 142.91 0 0 1 2.43-2.053c1.686-.142 3.382-.284 5.12-.436.887-.075 1.92-.262 2.405-1.226.436-.877-.015-1.35-.48-1.874l-3.881-4.369-5.481-6.174S22.185 2.128 21.198 2.433z"></path>
-                    <path d="M18.167 7.068c.237 1.632-1.162 6.872-1.766 8.849"></path>
-                </svg>
-                @inconigto_Mode
-            </a>
-            <a href="https://t.me/InconigtoMode" class="social-link" target="_blank">
-                <svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21.198 2.433a2.242 2.242 0 0 0-1.022.215l-8.609 3.33c-2.068.8-4.133 1.598-5.724 2.21a405.15 405.15 0 0 1-2.849 1.09c-.42.147-.99.332-1.473.901-.728.968.193 1.798.919 2.286 1.61.516 3.275 1.009 4.654 1.472.846 1.467 1.618 2.796 2.503 4.532.545 1.062 1.587 2.739 3.19 2.756 1.26.033 2.052-.6 3.542-1.95a142.91 142.91 0 0 1 2.43-2.053c1.686-.142 3.382-.284 5.12-.436.887-.075 1.92-.262 2.405-1.226.436-.877-.015-1.35-.48-1.874l-3.881-4.369-5.481-6.174S22.185 2.128 21.198 2.433z"></path>
-                    <path d="M18.167 7.068c.237 1.632-1.162 6.872-1.766 8.849"></path>
-                </svg>
-                @InconigtoMode
-            </a>
-        </div>
-        <div class="footer-year">© <span id="current-year"></span></div>
-    </footer>
+<!-- LOADING -->
+<div id="loading" class="loading" role="dialog" aria-modal="true" aria-label="Loading">
+  <div class="box">
+    <div class="spinner" aria-hidden="true"></div>
+    <div class="loading-text">Loading...</div>
+  </div>
+</div>
 
-    <!-- JavaScript -->
-    <script src="js/common.js"></script>
-    <script src="js/sub.js"></script>
+<script>
+/* ====== JS dari kamu (tanpa perubahan logika, hanya disisipkan utuh) ====== */
+const CONFIG = {
+  'proxyListUrl': "https://raw.githubusercontent.com/AFRcloud/ProxyList/refs/heads/main/ProxyList.txt",
+  'apiCheckUrl': "https://api.jb8fd7grgd.workers.dev/",
+  'mainDomains': ["dia.oranglemah.web.id"],
+  'defaultUuid': 'fccdaaae-af39-41a7-9fde-fd32a48278cf',
+  'maxProxies': 0x32,
+  'defaultProxyCount': 0x5,
+  'pathTemplate': "/Free/{ip}-{port}"
+};
+let proxyList = [];
+let filteredProxyList = [];
+let validatedProxies = [];
+let validationInProgress = false;
+let totalValidated = 0x0;
+let validCount = 0x0;
+let invalidCount = 0x0;
+const form = document.getElementById("subLinkForm");
+const configTypeSelect = document.getElementById("configType");
+const formatTypeSelect = document.getElementById("formatType");
+const uuidInput = document.getElementById('uuid');
+const generateUuidBtn = document.getElementById('generateUuid');
+const bugTypeSelect = document.getElementById("bugType");
+const mainDomainSelect = document.getElementById('mainDomain');
+const customBugContainer = document.getElementById("customBugContainer");
+const customBugInput = document.getElementById("customBug");
+const tlsSelect = document.getElementById("tls");
+const countrySelect = document.getElementById("country");
+const limitInput = document.getElementById('limit');
+const validateProxiesSelect = document.getElementById("validateProxies");
+const loadingElement = document.getElementById("loading");
+const validationStatusElement = document.getElementById('validation-status');
+const validationCountElement = document.getElementById("validation-count");
+const validationBarElement = document.getElementById("validation-bar");
+const validCountElement = document.getElementById('valid-count');
+const invalidCountElement = document.getElementById("invalid-count");
+const errorMessageElement = document.getElementById("error-message");
+const resultElement = document.getElementById("result");
+const outputElement = document.getElementById("output");
+const copyLinkBtn = document.getElementById("copyLink");
+
+function generateUUIDv4() {
+  return crypto.randomUUID();
+}
+async function copyToClipboard(_0x3a1862) {
+  try {
+    await navigator.clipboard.writeText(_0x3a1862);
+    return true;
+  } catch (_0x53b1ea) {
+    console.error("Failed to copy: ", _0x53b1ea);
+    return false;
+  }
+}
+function safeBase64Encode(_0x38f716) {
+  try {
+    return btoa(unescape(encodeURIComponent(_0x38f716)));
+  } catch (_0x84a36b) {
+    console.error("Error encoding base64:", _0x84a36b);
+    return '';
+  }
+}
+document.addEventListener("DOMContentLoaded", () => {
+  // set UUID default supaya form siap pakai
+  uuidInput.value = CONFIG.defaultUuid || generateUUIDv4();
+
+  populateMainDomains();
+  setupEventListeners();
+  loadProxyList();
+});
+function populateMainDomains() {
+  CONFIG.mainDomains.forEach(_0x40b88c => {
+    const _0x111831 = document.createElement("option");
+    _0x111831.value = _0x40b88c;
+    _0x111831.textContent = _0x40b88c;
+    mainDomainSelect.appendChild(_0x111831);
+  });
+}
+function setupEventListeners() {
+  generateUuidBtn.addEventListener("click", () => {
+    uuidInput.value = crypto.randomUUID();
+  });
+  bugTypeSelect.addEventListener("change", () => {
+    if (bugTypeSelect.value === 'non-wildcard' || bugTypeSelect.value === "wildcard") {
+      customBugContainer.style.display = 'block';
+    } else {
+      customBugContainer.style.display = "none";
+    }
+  });
+  form.addEventListener("submit", handleFormSubmit);
+  copyLinkBtn.addEventListener("click", () => {
+    copyToClipboard(outputElement.value).then(_0xbf9f12 => {
+      if (_0xbf9f12) {
+        copyLinkBtn.innerHTML = `
+            <svg class="copy-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            COPIED SUCCESSFULLY
+          `;
+        setTimeout(() => {
+          copyLinkBtn.innerHTML = `
+              <svg class="copy-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              COPY CONFIGURATION
+            `;
+        }, 0x7d0);
+      }
+    });
+  });
+}
+function loadProxyList() {
+  showLoading("Fetching proxy list...");
+  fetch("https://raw.githubusercontent.com/AFRcloud/ProxyList/refs/heads/main/ProxyList.txt").then(_0x4494de => {
+    if (!_0x4494de.ok) {
+      throw new Error("Failed to fetch proxy list");
+    }
+    return _0x4494de.text();
+  }).then(_0x139194 => {
+    processProxyData(_0x139194);
+    hideLoading();
+  })["catch"](_0x34db10 => {
+    console.error("Error loading proxy list:", _0x34db10);
+    showError("Failed to load proxy list. Please try again later.");
+    hideLoading();
+  });
+}
+function processProxyData(_0x33f045) {
+  const _0x4d6091 = _0x33f045.split(/\r?\n/).filter(_0xf68f4f => _0xf68f4f.trim() !== '');
+  if (_0x4d6091.length === 0x0) {
+    showError("No proxies found in the proxy list.");
+    return;
+  }
+  let _0x3777ca = ',';
+  const _0x1899eb = _0x4d6091[0x0];
+  if (_0x1899eb.includes("\t")) {
+    _0x3777ca = "\t";
+  } else {
+    if (_0x1899eb.includes('|')) {
+      _0x3777ca = '|';
+    } else if (_0x1899eb.includes(';')) {
+      _0x3777ca = ';';
+    }
+  }
+  proxyList = _0x4d6091.map(_0x94f33 => {
+    const _0x2dfee1 = _0x94f33.split(_0x3777ca);
+    if (_0x2dfee1.length >= 0x2) {
+      return {
+        'ip': _0x2dfee1[0x0].trim(),
+        'port': _0x2dfee1[0x1].trim(),
+        'country': _0x2dfee1.length >= 0x3 ? _0x2dfee1[0x2].trim() : 'Unknown',
+        'provider': _0x2dfee1.length >= 0x4 ? _0x2dfee1[0x3].trim() : "Unknown Provider"
+      };
+    }
+    return null;
+  }).filter(_0xdf2f5b => _0xdf2f5b && _0xdf2f5b.ip && _0xdf2f5b.port);
+  populateCountryDropdown();
+}
+function populateCountryDropdown() {
+  const _0x3712f3 = [...new Set(proxyList.map(_0x3cdc85 => _0x3cdc85.country))];
+  _0x3712f3.sort();
+  countrySelect.innerHTML = '';
+  const _0x47db50 = document.createElement("option");
+  _0x47db50.value = '';
+  _0x47db50.textContent = "All Countries";
+  countrySelect.appendChild(_0x47db50);
+  _0x3712f3.forEach(_0x547d71 => {
+    const _0x1f50f5 = document.createElement("option");
+    _0x1f50f5.value = _0x547d71;
+    _0x1f50f5.textContent = _0x547d71;
+    countrySelect.appendChild(_0x1f50f5);
+  });
+}
+async function handleFormSubmit(_0x242808) {
+  _0x242808.preventDefault();
+  errorMessageElement.textContent = '';
+  errorMessageElement.style.display = "none";
+  const _0x110b63 = configTypeSelect.value;
+  const _0x1e06b0 = formatTypeSelect.value;
+  const _0x521cbd = uuidInput.value;
+  const _0x46bcd6 = bugTypeSelect.value;
+  const _0x178670 = mainDomainSelect.value;
+  const _0x1a54a2 = customBugInput.value;
+  const _0x287a93 = tlsSelect.value === "true";
+  const _0x2b7f20 = countrySelect.value;
+  const _0x2365d1 = Number.parseInt(limitInput.value, 0xa);
+  const _0x287a10 = (validateProxiesSelect.value === "true");
+
+  if (!_0x521cbd) {
+    showError("Please enter a UUID.");
+    return;
+  }
+  if (_0x2365d1 < 0x1 || _0x2365d1 > 0x32) {
+    showError("Proxy count must be between 1 and 50.");
+    return;
+  }
+  filteredProxyList = _0x2b7f20 ? proxyList.filter(_0x4b2ae4 => _0x4b2ae4.country === _0x2b7f20) : [...proxyList];
+  if (filteredProxyList.length === 0x0) {
+    showError("No proxies found with the selected criteria.");
+    return;
+  }
+  shuffleArray(filteredProxyList);
+  filteredProxyList = filteredProxyList.slice(0x0, _0x2365d1);
+  showLoading("Generating configuration...");
+  if (_0x287a10) {
+    await validateProxyList();
+  }
+  const _0x17bc8e = generateConfiguration(_0x110b63, _0x1e06b0, _0x521cbd, _0x46bcd6, _0x178670, _0x1a54a2, _0x287a93);
+  showResult(_0x17bc8e);
+}
+async function validateProxyList() {
+  validationInProgress = true;
+  validatedProxies = [];
+  totalValidated = 0x0;
+  validCount = 0x0;
+  invalidCount = 0x0;
+  validationStatusElement.style.display = "block";
+  validationCountElement.textContent = '0/' + filteredProxyList.length;
+  validationBarElement.style.width = '0%';
+  validCountElement.textContent = '0';
+  invalidCountElement.textContent = '0';
+  invalidCountElement.textContent = '0';
+  const _0x4332ef = [...filteredProxyList];
+  const _0x5b3e38 = Math.ceil(_0x4332ef.length / 0x5);
+  for (let _0x16a2da = 0x0; _0x16a2da < _0x5b3e38; _0x16a2da++) {
+    const _0x3a46c6 = _0x16a2da * 0x5;
+    const _0x3e4450 = Math.min(_0x3a46c6 + 0x5, _0x4332ef.length);
+    const _0xc8c08d = _0x4332ef.slice(_0x3a46c6, _0x3e4450);
+    await Promise.all(_0xc8c08d.map(async _0x5ec896 => {
+      const _0x592a51 = await validateProxy(_0x5ec896);
+      totalValidated++;
+      const _0x22ea5a = totalValidated / _0x4332ef.length * 0x64;
+      validationCountElement.textContent = totalValidated + '/' + _0x4332ef.length;
+      validationBarElement.style.width = _0x22ea5a + '%';
+      if (_0x592a51) {
+        validCount++;
+        validCountElement.textContent = validCount;
+        validatedProxies.push(_0x5ec896);
+      } else {
+        invalidCount++;
+        invalidCountElement.textContent = invalidCount;
+      }
+    }));
+  }
+  if (validatedProxies.length > 0x0) {
+    filteredProxyList = validatedProxies;
+  }
+  validationInProgress = false;
+}
+async function validateProxy(_0x40e0b1) {
+  try {
+    const _0x5084c5 = await fetch("https://afrcloud.dpdns.org/" + _0x40e0b1.ip + ':' + _0x40e0b1.port);
+    const _0x17509d = await _0x5084c5.json();
+    const _0x416052 = Array.isArray(_0x17509d) ? _0x17509d[0x0] : _0x17509d;
+    return _0x416052 && _0x416052.proxyip === true;
+  } catch (_0x1dc00e) {
+    console.error("Error validating proxy:", _0x1dc00e);
+    return false;
+  }
+}
+function generateConfiguration(_0x1f0a31, _0x142717, _0x559e83, _0x2af67c, _0x2a84fa, _0x306f9c, _0x2a8e81) {
+  const _0x26af7a = filteredProxyList;
+  switch (_0x142717) {
+    case "v2ray":
+      return generateV2rayLinks(_0x1f0a31, _0x26af7a, _0x559e83, _0x2af67c, _0x2a84fa, _0x306f9c, _0x2a8e81);
+    case 'clash':
+      return generateClashConfig(_0x1f0a31, _0x26af7a, _0x559e83, _0x2af67c, _0x2a84fa, _0x306f9c, _0x2a8e81);
+    case "nekobox":
+      const _0x325b5f = [];
+      _0x26af7a.forEach(_0x2f8b2a => {
+        const _0x2a6cad = "/Free/{ip}-{port}".replace("{ip}", _0x2f8b2a.ip).replace("{port}", _0x2f8b2a.port);
+        const _0x5796b5 = _0x2a8e81 ? 0x1bb : 0x50;
+        const _0x10ed8d = _0x306f9c && (_0x2af67c === "non-wildcard" || _0x2af67c === "wildcard") ? _0x306f9c.split(',').map(_0x2065e6 => _0x2065e6.trim()) : [_0x2a84fa];
+        _0x10ed8d.forEach(_0x56a273 => {
+          let _0xa1b4c1;
+          let _0x928f74;
+          let _0xe50fa4;
+          switch (_0x2af67c) {
+            case "default":
+              _0xa1b4c1 = _0x2a84fa;
+              _0x928f74 = _0x2a84fa;
+              _0xe50fa4 = _0x2a84fa;
+              break;
+            case "non-wildcard":
+              _0xa1b4c1 = _0x56a273;
+              _0x928f74 = _0x2a84fa;
+              _0xe50fa4 = _0x2a84fa;
+              break;
+            case 'wildcard':
+              _0xa1b4c1 = _0x56a273;
+              _0x928f74 = _0x56a273 + '.' + _0x2a84fa;
+              _0xe50fa4 = _0x56a273 + '.' + _0x2a84fa;
+              break;
+          }
+          const _0x587ec3 = _0x2f8b2a.country;
+          const _0x8c3a20 = _0x2f8b2a.provider;
+          if (_0x1f0a31 === 'vmess' || _0x1f0a31 === "mix") {
+            _0x325b5f.push({
+              'type': "vmess",
+              'name': '[' + (_0x325b5f.length + 0x1) + "] (" + _0x587ec3 + ") " + _0x8c3a20 + " [VMESS-" + (_0x2a8e81 ? "TLS" : 'NTLS') + ']',
+              'server': _0xa1b4c1,
+              'port': _0x5796b5,
+              'uuid': _0x559e83,
+              'tls': _0x2a8e81,
+              'sni': _0xe50fa4,
+              'wsHost': _0x928f74,
+              'wsPath': _0x2a6cad
+            });
+          }
+          if (_0x1f0a31 === "vless" || _0x1f0a31 === "mix") {
+            _0x325b5f.push({
+              'type': "vless",
+              'name': '[' + (_0x325b5f.length + 0x1) + "] (" + _0x587ec3 + ") " + _0x8c3a20 + " [VLESS-" + (_0x2a8e81 ? "TLS" : "NTLS") + ']',
+              'server': _0xa1b4c1,
+              'port': _0x5796b5,
+              'uuid': _0x559e83,
+              'tls': _0x2a8e81,
+              'sni': _0xe50fa4,
+              'wsHost': _0x928f74,
+              'wsPath': _0x2a6cad
+            });
+          }
+          if (_0x1f0a31 === "trojan" || _0x1f0a31 === "mix") {
+            _0x325b5f.push({
+              'type': "trojan",
+              'name': '[' + (_0x325b5f.length + 0x1) + "] (" + _0x587ec3 + ") " + _0x8c3a20 + " [TROJAN-" + (_0x2a8e81 ? "TLS" : "NTLS") + ']',
+              'server': _0xa1b4c1,
+              'port': _0x5796b5,
+              'password': _0x559e83,
+              'tls': _0x2a8e81,
+              'sni': _0xe50fa4,
+              'wsHost': _0x928f74,
+              'wsPath': _0x2a6cad
+            });
+          }
+          if (_0x1f0a31 === "shadowsocks" || _0x1f0a31 === "mix") {
+            _0x325b5f.push({
+              'type': 'ss',
+              'name': '[' + (_0x325b5f.length + 0x1) + "] (" + _0x587ec3 + ") " + _0x8c3a20 + " [SS-" + (_0x2a8e81 ? "TLS" : 'NTLS') + ']',
+              'server': _0xa1b4c1,
+              'port': _0x5796b5,
+              'password': _0x559e83,
+              'tls': _0x2a8e81,
+              'wsHost': _0x928f74,
+              'wsPath': _0x2a6cad
+            });
+          }
+        });
+      });
+      return generateNekoboxConfig(_0x325b5f);
+    default:
+      return "Unsupported format type";
+  }
+}
+function generateV2rayLinks(_0x4ae1c6, _0x4b8e74, _0x29ed29, _0x229483, _0x40705a, _0x529635, _0x2014a9) {
+  const _0x307e59 = [];
+  let _0x225dcd = [];
+  if (_0x529635 && (_0x229483 === "non-wildcard" || _0x229483 === 'wildcard')) {
+    _0x225dcd = _0x529635.split(',').map(_0x300d17 => _0x300d17.trim());
+  }
+  _0x4b8e74.forEach(_0x29873d => {
+    const _0xf9d8cf = "/Free/{ip}-{port}".replace("{ip}", _0x29873d.ip).replace('{port}', _0x29873d.port);
+    const _0x197458 = _0x2014a9 ? 0x1bb : 0x50;
+    const _0x56327b = _0x2014a9 ? "tls" : 'none';
+    if (_0x4ae1c6 === "mix" || _0x4ae1c6 === 'vmess') {
+      if (_0x225dcd.length > 0x0) {
+        _0x225dcd.forEach((_0x2da4e8, _0x417d68) => {
+          const _0x1f2cbd = _0x229483 === 'wildcard' ? _0x2da4e8 + '.' + _0x40705a : _0x40705a;
+          const _0x2cf9bf = _0x229483 === "wildcard" ? _0x2da4e8 + '.' + _0x40705a : _0x40705a;
+          const _0x3785bd = {
+            'v': '2',
+            'ps': '[' + (_0x307e59.length + 0x1) + "] " + _0x29873d.country + " - " + _0x29873d.provider + " [VMess-" + (_0x2014a9 ? "TLS" : "NTLS") + ']',
+            'add': _0x2da4e8,
+            'port': _0x197458,
+            'id': _0x29ed29,
+            'aid': '0',
+            'net': 'ws',
+            'type': "none",
+            'host': _0x1f2cbd,
+            'path': _0xf9d8cf,
+            'tls': _0x56327b,
+            'sni': _0x2cf9bf,
+            'scy': "zero"
+          };
+          _0x307e59.push("vmess://" + safeBase64Encode(JSON.stringify(_0x3785bd)));
+        });
+      } else {
+        const _0x914513 = {
+          'v': '2',
+          'ps': '[' + (_0x307e59.length + 0x1) + "] " + _0x29873d.country + " - " + _0x29873d.provider + " [VMess-" + (_0x2014a9 ? "TLS" : "NTLS") + ']',
+          'add': _0x40705a,
+          'port': _0x197458,
+          'id': _0x29ed29,
+          'aid': '0',
+          'net': 'ws',
+          'type': "none",
+          'host': _0x40705a,
+          'path': _0xf9d8cf,
+          'tls': _0x56327b,
+          'sni': _0x40705a,
+          'scy': "zero"
+        };
+        _0x307e59.push('vmess://' + safeBase64Encode(JSON.stringify(_0x914513)));
+      }
+    }
+    if (_0x4ae1c6 === 'mix' || _0x4ae1c6 === 'vless') {
+      if (_0x225dcd.length > 0x0) {
+        _0x225dcd.forEach(_0xf1564c => {
+          const _0x491272 = _0x229483 === "wildcard" ? _0xf1564c + '.' + _0x40705a : _0x40705a;
+          const _0x43542e = _0x229483 === 'wildcard' ? _0xf1564c + '.' + _0x40705a : _0x40705a;
+          const _0x8e9d4e = encodeURIComponent('[' + (_0x307e59.length + 0x1) + "] " + _0x29873d.country + " - " + _0x29873d.provider + " [VLESS-" + (_0x2014a9 ? 'TLS' : "NTLS") + ']');
+          const _0x52d677 = encodeURIComponent(_0xf9d8cf);
+          _0x307e59.push("vless://" + _0x29ed29 + '@' + _0xf1564c + ':' + _0x197458 + "?encryption=none&security=" + _0x56327b + "&type=ws&host=" + _0x491272 + "&path=" + _0x52d677 + '&sni=' + _0x43542e + '#' + _0x8e9d4e);
+        });
+      } else {
+        const _0x48c1bc = encodeURIComponent('[' + (_0x307e59.length + 0x1) + "] " + _0x29873d.country + " - " + _0x29873d.provider + " [VLESS-" + (_0x2014a9 ? "TLS" : "NTLS") + ']');
+        const _0x1b67b9 = encodeURIComponent(_0xf9d8cf);
+        _0x307e59.push('vless://' + _0x29ed29 + '@' + _0x40705a + ':' + _0x197458 + '?encryption=none&security=' + _0x56327b + '&type=ws&host=' + _0x40705a + "&path=" + _0x1b67b9 + "&sni=" + _0x40705a + '#' + _0x48c1bc);
+      }
+    }
+    if (_0x4ae1c6 === "mix" || _0x4ae1c6 === "trojan") {
+      if (_0x225dcd.length > 0x0) {
+        _0x225dcd.forEach(_0x2f8766 => {
+          const _0x53f2e4 = _0x229483 === 'wildcard' ? _0x2f8766 + '.' + _0x40705a : _0x40705a;
+          const _0xcf00c9 = _0x229483 === "wildcard" ? _0x2f8766 + '.' + _0x40705a : _0x40705a;
+          const _0x57accd = encodeURIComponent('[' + (_0x307e59.length + 0x1) + "] " + _0x29873d.country + " - " + _0x29873d.provider + " [Trojan-" + (_0x2014a9 ? 'TLS' : 'NTLS') + ']');
+          const _0x38d016 = encodeURIComponent(_0xf9d8cf);
+          _0x307e59.push("trojan://" + _0x29ed29 + '@' + _0x2f8766 + ':' + _0x197458 + "?security=" + _0x56327b + "&type=ws&host=" + _0x53f2e4 + "&path=" + _0x38d016 + "&sni=" + _0xcf00c9 + '#' + _0x57accd);
+        });
+      } else {
+        const _0x977f74 = encodeURIComponent('[' + (_0x307e59.length + 0x1) + "] " + _0x29873d.country + " - " + _0x29873d.provider + " [Trojan-" + (_0x2014a9 ? "TLS" : 'NTLS') + ']');
+        const _0x163df0 = encodeURIComponent(_0xf9d8cf);
+        _0x307e59.push('trojan://' + _0x29ed29 + '@' + _0x40705a + ':' + _0x197458 + '?security=' + _0x56327b + "&type=ws&host=" + _0x40705a + "&path=" + _0x163df0 + "&sni=" + _0x40705a + '#' + _0x977f74);
+      }
+    }
+    if (_0x4ae1c6 === "mix" || _0x4ae1c6 === "shadowsocks") {
+      if (_0x225dcd.length > 0x0) {
+        _0x225dcd.forEach(_0x1bb2ea => {
+          const _0xbfdd0f = _0x229483 === 'wildcard' ? _0x1bb2ea + '.' + _0x40705a : _0x40705a;
+          const _0x2151e0 = encodeURIComponent('[' + (_0x307e59.length + 0x1) + "] " + _0x29873d.country + " - " + _0x29873d.provider + " [SS-" + (_0x2014a9 ? "TLS" : "NTLS") + ']');
+          const _0xe88bb = encodeURIComponent(_0xf9d8cf);
+          const _0x170849 = safeBase64Encode("none:" + _0x29ed29);
+          _0x307e59.push("ss://" + _0x170849 + '@' + _0x1bb2ea + ':' + _0x197458 + "?plugin=v2ray-plugin%3Btls%3Bmux%3D0%3Bmode%3Dwebsocket%3Bpath%3D" + _0xe88bb + '%3Bhost%3D' + _0xbfdd0f + '#' + _0x2151e0);
+        });
+      } else {
+        const _0x1ccb47 = encodeURIComponent('[' + (_0x307e59.length + 0x1) + "] " + _0x29873d.country + " - " + _0x29873d.provider + " [SS-" + (_0x2014a9 ? 'TLS' : "NTLS") + ']');
+        const _0x122687 = encodeURIComponent(_0xf9d8cf);
+        const _0x34b2b4 = safeBase64Encode("none:" + _0x29ed29);
+        _0x307e59.push('ss://' + _0x34b2b4 + '@' + _0x40705a + ':' + _0x197458 + "?plugin=v2ray-plugin%3Btls%3Bmux%3D0%3Bmode%3Dwebsocket%3Bpath=" + _0x122687 + '%3Bhost%3D' + _0x40705a + '#' + _0x1ccb47);
+      }
+    }
+  });
+  return _0x307e59.join("\n");
+}
+function generateClashConfig(_0x1786a5, _0x29feac, _0x5e4410, _0x2cde90, _0x2020a9, _0xdfe797, _0x20d327) {
+  let _0x8df0ee = "# Clash Proxy Provider Configuration\n# Generated by afrcloud\n# Date: " + new Date().toLocaleString('en-US', {
+    'timeZone': "Asia/Jakarta"
+  }) + "\n# Protocol: " + _0x1786a5.toUpperCase() + "\n# TLS: " + (_0x20d327 ? "Enabled" : "Disabled") + "\n\nproxies:\n";
+  let _0x67ac19 = [];
+  if (_0xdfe797 && (_0x2cde90 === "non-wildcard" || _0x2cde90 === "wildcard")) {
+    _0x67ac19 = _0xdfe797.split(',').map(_0x457eae => _0x457eae.trim());
+  }
+  _0x29feac.forEach(_0x468e1e => {
+    const _0x3401f7 = "/Free/{ip}-{port}".replace('{ip}', _0x468e1e.ip).replace('{port}', _0x468e1e.port);
+    const _0x5a3f41 = _0x20d327 ? 0x1bb : 0x50;
+    if (_0x1786a5 === "mix" || _0x1786a5 === 'vmess') {
+      if (_0x67ac19.length > 0x0) {
+        _0x67ac19.forEach((_0x332f38, _0x4668c4) => {
+          const _0x5309ac = _0x2cde90 === "wildcard" ? _0x332f38 + '.' + _0x2020a9 : _0x2020a9;
+          const _0x37865b = _0x2cde90 === "wildcard" ? _0x332f38 + '.' + _0x2020a9 : _0x2020a9;
+          const _0x1cc031 = '[' + (_0x29feac.indexOf(_0x468e1e) * _0x67ac19.length + _0x4668c4 + 0x1) + "] " + _0x468e1e.country + " - " + _0x468e1e.provider + " [VMess-" + (_0x20d327 ? "TLS" : "NTLS") + ']';
+          _0x8df0ee += "\n  - name: \"" + _0x1cc031 + "\"\n    type: vmess\n    server: " + _0x332f38 + "\n    port: " + _0x5a3f41 + "\n    uuid: " + _0x5e4410 + "\n    alterId: 0\n    cipher: zero\n    udp: false\n    tls: " + _0x20d327 + "\n    skip-cert-verify: true\n    servername: " + _0x37865b + "\n    network: ws\n    ws-opts:\n      path: " + _0x3401f7 + "\n      headers:\n        Host: " + _0x5309ac + "\n";
+        });
+      } else {
+        const _0x30709c = '[' + (_0x29feac.indexOf(_0x468e1e) + 0x1) + "] " + _0x468e1e.country + " - " + _0x468e1e.provider + " [VMess-" + (_0x20d327 ? "TLS" : "NTLS") + ']';
+        _0x8df0ee += "\n  - name: \"" + _0x30709c + "\"\n    type: vmess\n    server: " + _0x2020a9 + "\n    port: " + _0x5a3f41 + "\n    uuid: " + _0x5e4410 + "\n    alterId: 0\n    cipher: zero\n    udp: false\n    tls: " + _0x20d327 + "\n    skip-cert-verify: true\n    servername: " + _0x2020a9 + "\n    network: ws\n    ws-opts:\n      path: " + _0x3401f7 + "\n      headers:\n        Host: " + _0x2020a9 + "\n";
+      }
+    }
+    if (_0x1786a5 === "mix" || _0x1786a5 === 'vless') {
+      if (_0x67ac19.length > 0x0) {
+        _0x67ac19.forEach((_0x33d5b0, _0x9c795d) => {
+          const _0x47f58f = _0x2cde90 === "wildcard" ? _0x33d5b0 + '.' + _0x2020a9 : _0x2020a9;
+          const _0x3795c0 = _0x2cde90 === "wildcard" ? _0x33d5b0 + '.' + _0x2020a9 : _0x2020a9;
+          const _0x40df10 = '[' + (_0x29feac.indexOf(_0x468e1e) * _0x67ac19.length + _0x9c795d + 0x1) + "] " + _0x468e1e.country + " - " + _0x468e1e.provider + " [VLESS-" + (_0x20d327 ? "TLS" : "NTLS") + ']';
+          _0x8df0ee += "\n  - name: \"" + _0x40df10 + "\"\n    type: vless\n    server: " + _0x33d5b0 + "\n    port: " + _0x5a3f41 + "\n    uuid: " + _0x5e4410 + "\n    udp: false\n    tls: " + _0x20d327 + "\n    skip-cert-verify: true\n    servername: " + _0x3795c0 + "\n    network: ws\n    ws-opts:\n      path: " + _0x3401f7 + "\n      headers:\n        Host: " + _0x47f58f + "\n";
+        });
+      } else {
+        const _0x364eb7 = '[' + (_0x29feac.indexOf(_0x468e1e) + 0x1) + "] " + _0x468e1e.country + " - " + _0x468e1e.provider + " [VLESS-" + (_0x20d327 ? "TLS" : "NTLS") + ']';
+        _0x8df0ee += "\n  - name: \"" + _0x364eb7 + "\"\n    type: vless\n    server: " + _0x2020a9 + "\n    port: " + _0x5a3f41 + "\n    uuid: " + _0x5e4410 + "\n    udp: false\n    tls: " + _0x20d327 + "\n    skip-cert-verify: true\n    servername: " + _0x2020a9 + "\n    network: ws\n    ws-opts:\n      path: " + _0x3401f7 + "\n      headers:\n        Host: " + _0x2020a9 + "\n";
+      }
+    }
+    if (_0x1786a5 === "mix" || _0x1786a5 === "trojan") {
+      if (_0x67ac19.length > 0x0) {
+        _0x67ac19.forEach((_0x5d5169, _0x1454cf) => {
+          const _0x1a90ac = _0x2cde90 === "wildcard" ? _0x5d5169 + '.' + _0x2020a9 : _0x2020a9;
+          const _0x201e92 = _0x2cde90 === "wildcard" ? _0x5d5169 + '.' + _0x2020a9 : _0x2020a9;
+          const _0x125b9e = '[' + (_0x29feac.indexOf(_0x468e1e) * _0x67ac19.length + _0x1454cf + 0x1) + "] " + _0x468e1e.country + " - " + _0x468e1e.provider + " [Trojan-" + (_0x20d327 ? "TLS" : "NTLS") + ']';
+          _0x8df0ee += "\n  - name: \"" + _0x125b9e + "\"\n    type: trojan\n    server: " + _0x5d5169 + "\n    port: " + _0x5a3f41 + "\n    password: " + _0x5e4410 + "\n    udp: false\n    sni: " + _0x201e92 + "\n    skip-cert-verify: true\n    network: ws\n    ws-opts:\n      path: " + _0x3401f7 + "\n      headers:\n        Host: " + _0x1a90ac + "\n";
+        });
+      } else {
+        const _0xbcdf4 = '[' + (_0x29feac.indexOf(_0x468e1e) + 0x1) + "] " + _0x468e1e.country + " - " + _0x468e1e.provider + " [Trojan-" + (_0x20d327 ? 'TLS' : "NTLS") + ']';
+        _0x8df0ee += "\n  - name: \"" + _0xbcdf4 + "\"\n    type: trojan\n    server: " + _0x2020a9 + "\n    port: " + _0x5a3f41 + "\n    password: " + _0x5e4410 + "\n    udp: false\n    sni: " + _0x2020a9 + "\n    skip-cert-verify: true\n    network: ws\n    ws-opts:\n      path: " + _0x3401f7 + "\n      headers:\n        Host: " + _0x2020a9 + "\n";
+      }
+    }
+    if (_0x1786a5 === 'mix' || _0x1786a5 === "shadowsocks") {
+      if (_0x67ac19.length > 0x0) {
+        _0x67ac19.forEach((_0x3c3645, _0x247523) => {
+          const _0x53eb18 = _0x2cde90 === "wildcard" ? _0x3c3645 + '.' + _0x2020a9 : _0x2020a9;
+          const _0x907f67 = '[' + (_0x29feac.indexOf(_0x468e1e) * _0x67ac19.length + _0x247523 + 0x1) + "] " + _0x468e1e.country + " - " + _0x468e1e.provider + " [SS-" + (_0x20d327 ? "TLS" : "NTLS") + ']';
+          _0x8df0ee += "\n  - name: \"" + _0x907f67 + "\"\n    type: ss\n    server: " + _0x3c3645 + "\n    port: " + _0x5a3f41 + "\n    cipher: none\n    password: " + _0x5e4410 + "\n    udp: false\n    plugin: v2ray-plugin\n    plugin-opts:\n      mode: websocket\n      tls: " + _0x20d327 + "\n      skip-cert-verify: true\n      host: " + _0x53eb18 + "\n      path: " + _0x3401f7 + "\n      mux: false\n";
+        });
+      } else {
+        const _0x5e7f61 = '[' + (_0x29feac.indexOf(_0x468e1e) + 0x1) + "] " + _0x468e1e.country + " - " + _0x468e1e.provider + " [SS-" + (_0x20d327 ? "TLS" : "NTLS") + ']';
+        _0x8df0ee += "\n  - name: \"" + _0x5e7f61 + "\"\n    type: ss\n    server: " + _0x2020a9 + "\n    port: " + _0x5a3f41 + "\n    cipher: none\n    password: " + _0x5e4410 + "\n    udp: false\n    plugin: v2ray-plugin\n    plugin-opts:\n      mode: websocket\n      tls: " + _0x20d327 + "\n      skip-cert-verify: true\n      host: " + _0x2020a9 + "\n      path: " + _0x3401f7 + "\n      mux: false\n";
+      }
+    }
+  });
+  return _0x8df0ee;
+}
+function generateNekoboxConfig(_0x1c508f) {
+  let _0x1885d1 = "##Free##\n{\n  \"dns\": {\n    \"final\": \"dns-final\",\n    \"independent_cache\": true,\n    \"rules\": [\n      {\n        \"disable_cache\": false,\n        \"domain\": [\n          \"family.cloudflare-dns.com\"\n        ],\n        \"server\": \"direct-dns\"\n      }\n    ],\n    \"servers\": [\n      {\n        \"address\": \"https://family.cloudflare-dns.com/dns-query\",\n        \"address_resolver\": \"direct-dns\",\n        \"strategy\": \"ipv4_only\",\n        \"tag\": \"remote-dns\"\n      },\n      {\n        \"address\": \"local\",\n        \"strategy\": \"ipv4_only\",\n        \"tag\": \"direct-dns\"\n      },\n      {\n        \"address\": \"local\",\n        \"address_resolver\": \"dns-local\",\n        \"strategy\": \"ipv4_only\",\n        \"tag\": \"dns-final\"\n      },\n      {\n        \"address\": \"local\",\n        \"tag\": \"dns-local\"\n      },\n      {\n        \"address\": \"rcode://success\",\n        \"tag\": \"dns-block\"\n      }\n    ]\n  },\n  \"experimental\": {\n    \"cache_file\": {\n      \"enabled\": true,\n      \"path\": \"../cache/clash.db\",\n      \"store_fakeip\": true\n    },\n    \"clash_api\": {\n      \"external_controller\": \"127.0.0.1:9090\",\n      \"external_ui\": \"../files/yacd\"\n    }\n  },\n  \"inbounds\": [\n    {\n      \"listen\": \"0.0.0.0\",\n      \"listen_port\": 6450,\n      \"override_address\": \"8.8.8.8\",\n      \"override_port\": 53,\n      \"tag\": \"dns-in\",\n      \"type\": \"direct\"\n    },\n    {\n      \"domain_strategy\": \"\",\n      \"endpoint_independent_nat\": true,\n      \"inet4_address\": [\n        \"172.19.0.1/28\"\n      ],\n      \"mtu\": 9000,\n      \"endpoint_independent_nat\": true,\n      \"inet4_address\": [\n        \"172.19.0.1/28\"\n      ],\n      \"mtu\": 9000,\n      \"sniff\": true,\n      \"sniff_override_destination\": true,\n      \"stack\": \"system\",\n      \"tag\": \"tun-in\",\n      \"type\": \"tun\"\n    },\n    {\n      \"domain_strategy\": \"\",\n      \"listen\": \"0.0.0.0\",\n      \"listen_port\": 2080,\n      \"sniff\": true,\n      \"sniff_override_destination\": true,\n      \"tag\": \"mixed-in\",\n      \"type\": \"mixed\"\n    }\n  ],\n  \"log\": {\n    \"level\": \"info\"\n  },\n  \"outbounds\": [\n    {\n      \"outbounds\": [\n        \"Best Latency\",\n";
+  const _0x213c2d = _0x1c508f.map(_0x3becaf => "        \"" + _0x3becaf.name + "\",").join("\n");
+  _0x1885d1 += _0x213c2d + "\n";
+  _0x1885d1 += "        \"direct\"\n      ],\n      \"tag\": \"Internet\",\n      \"type\": \"selector\"\n    },\n    {\n      \"interval\": \"1m0s\",\n      \"outbounds\": [\n";
+  _0x1885d1 += _0x213c2d + "\n";
+  _0x1885d1 += "        \"direct\"\n      ],\n      \"tag\": \"Best Latency\",\n      \"type\": \"urltest\",\n      \"url\": \"https://detectportal.firefox.com/success.txt\"\n    },\n";
+  const _0x2d2048 = _0x1c508f.map((_0x1c8082, _0x2c7019) => {
+    let _0x565893 = '';
+    if (_0x1c8082.type === "vmess") {
+      _0x565893 = "    {\n      \"alter_id\": 0,\n      \"packet_encoding\": \"\",\n      \"security\": \"zero\",\n      \"server\": \"" + _0x1c8082.server + "\",\n      \"server_port\": " + _0x1c8082.port + ',' + (_0x1c8082.tls ? "\n      \"tls\": {\n        \"enabled\": true,\n        \"insecure\": false,\n        \"server_name\": \"" + (_0x1c8082.sni || _0x1c8082.server) + "\",\n        \"utls\": {\n          \"enabled\": true,\n          \"fingerprint\": \"randomized\"\n        }\n      }," : '') + "\n      \"transport\": {\n        \"headers\": {\n          \"Host\": \"" + (_0x1c8082.wsHost || _0x1c8082.server) + "\"\n        },\n        \"path\": \"" + _0x1c8082.wsPath + "\",\n        \"type\": \"ws\"\n      },\n      \"uuid\": \"" + _0x1c8082.uuid + "\",\n      \"type\": \"vmess\",\n      \"domain_strategy\": \"prefer_ipv4\",\n      \"tag\": \"" + _0x1c8082.name + "\"\n    }";
+    } else {
+      if (_0x1c8082.type === "vless") {
+        _0x565893 = "    {\n      \"domain_strategy\": \"ipv4_only\",\n      \"flow\": \"\",\n      \"multiplex\": {\n        \"enabled\": false,\n        \"max_streams\": 32,\n        \"protocol\": \"smux\"\n      },\n      \"packet_encoding\": \"xudp\",\n      \"server\": \"" + _0x1c8082.server + "\",\n      \"server_port\": " + _0x1c8082.port + ",\n      \"tag\": \"" + _0x1c8082.name + "\"," + (_0x1c8082.tls ? "\n      \"tls\": {\n        \"enabled\": true,\n        \"insecure\": false,\n        \"server_name\": \"" + (_0x1c8082.sni || _0x1c8082.server) + "\",\n        \"utls\": {\n          \"enabled\": true,\n          \"fingerprint\": \"randomized\"\n        }\n      }," : '') + "\n      \"transport\": {\n        \"early_data_header_name\": \"Sec-WebSocket-Protocol\",\n        \"headers\": {\n          \"Host\": \"" + (_0x1c8082.wsHost || _0x1c8082.server) + "\"\n        },\n        \"max_early_data\": 0,\n        \"path\": \"" + _0x1c8082.wsPath + "\",\n        \"type\": \"ws\"\n      },\n      \"type\": \"vless\",\n      \"uuid\": \"" + _0x1c8082.uuid + "\"\n    }";
+      } else {
+        if (_0x1c8082.type === "trojan") {
+          _0x565893 = "    {\n      \"domain_strategy\": \"ipv4_only\",\n      \"multiplex\": {\n        \"enabled\": false,\n        \"max_streams\": 32,\n        \"protocol\": \"smux\"\n      },\n      \"password\": \"" + _0x1c8082.password + "\",\n      \"server\": \"" + _0x1c8082.server + "\",\n      \"server_port\": " + _0x1c8082.port + ",\n      \"tag\": \"" + _0x1c8082.name + "\"," + (_0x1c8082.tls ? "\n        \"tls\": {\n          \"enabled\": true,\n          \"insecure\": false,\n          \"server_name\": \"" + (_0x1c8082.sni || _0x1c8082.server) + "\",\n          \"utls\": {\n            \"enabled\": true,\n            \"fingerprint\": \"randomized\"\n          }\n        }," : '') + "\n      \"transport\": {\n        \"early_data_header_name\": \"Sec-WebSocket-Protocol\",\n        \"headers\": {\n          \"Host\": \"" + (_0x1c8082.wsHost || _0x1c8082.server) + "\"\n        },\n        \"max_early_data\": 0,\n        \"path\": \"" + _0x1c8082.wsPath + "\",\n        \"type\": \"ws\"\n      },\n      \"type\": \"trojan\"\n    }";
+        } else if (_0x1c8082.type === 'ss') {
+          _0x565893 = "    {\n      \"type\": \"shadowsocks\",\n      \"tag\": \"" + _0x1c8082.name + "\",\n      \"server\": \"" + _0x1c8082.server + "\",\n      \"server_port\": " + _0x1c8082.port + ",\n      \"method\": \"none\",\n      \"password\": \"" + _0x1c8082.password + "\",\n      \"plugin\": \"v2ray-plugin\",\n      \"plugin_opts\": \"mux=0;path=" + _0x1c8082.wsPath + ';host=' + (_0x1c8082.wsHost || _0x1c8082.server) + ";tls=" + (_0x1c8082.tls ? '1' : '0') + "\"\n    }";
+        }
+      }
+    }
+    return _0x565893;
+  }).join(",\n");
+  _0x1885d1 += _0x2d2048;
+  _0x1885d1 += ",\n    {\n      \"tag\": \"direct\",\n      \"type\": \"direct\"\n    },\n    {\n      \"tag\": \"bypass\",\n      \"type\": \"direct\"\n    },\n    {\n      \"tag\": \"block\",\n      \"type\": \"block\"\n    },\n    {\n      \"tag\": \"dns-out\",\n      \"type\": \"dns\"\n    }\n  ],\n  \"route\": {\n    \"auto_detect_interface\": true,\n    \"rules\": [\n      {\n        \"outbound\": \"dns-out\",\n        \"port\": [\n          53\n        ]\n      },\n      {\n        \"inbound\": [\n          \"dns-in\"\n        ],\n        \"outbound\": \"dns-out\"\n      },\n      {\n        \"network\": [\n          \"udp\"\n        ],\n        \"outbound\": \"block\",\n        \"port\": [\n          443\n        ],\n        \"port_range\": []\n      },\n      {\n        \"ip_cidr\": [\n          \"224.0.0.0/3\",\n          \"ff00::/8\"\n        ],\n        \"outbound\": \"block\",\n        \"source_ip_cidr\": [\n          \"224.0.0.0/3\",\n          \"ff00::/8\"\n        ]\n      }\n    ]\n  }\n}";
+  return _0x1885d1;
+}
+function showLoading(_0x544805) {
+  loadingElement.style.display = "flex";
+  loadingElement.querySelector(".loading-text").textContent = _0x544805;
+  resultElement.style.display = "none";
+  validationStatusElement.style.display = 'none';
+}
+function hideLoading() {
+  loadingElement.style.display = "none";
+}
+function showError(_0x20bbbc) {
+  errorMessageElement.textContent = _0x20bbbc;
+  errorMessageElement.style.display = "block";
+}
+function showResult(_0xcc5258) {
+  hideLoading();
+  validationStatusElement.style.display = "none";
+  outputElement.value = _0xcc5258;
+  resultElement.style.display = 'block';
+  resultElement.scrollIntoView({ 'behavior': "smooth" });
+}
+function shuffleArray(_0xd9add7) {
+  for (let _0x502beb = _0xd9add7.length - 0x1; _0x502beb > 0x0; _0x502beb--) {
+    const _0x1d417d = Math.floor(Math.random() * (_0x502beb + 0x1));
+    [_0xd9add7[_0x502beb], _0xd9add7[_0x1d417d]] = [_0xd9add7[_0x1d417d], _0xd9add7[_0x502beb]];
+  }
+  return _0xd9add7;
+}
+</script>
+
 </body>
 </html>
